@@ -1,0 +1,15 @@
+# Database PostgreSQL locale per lo sviluppo: `docker compose up -d`
+services:
+  db:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: aurea
+      POSTGRES_PASSWORD: aurea
+      POSTGRES_DB: aurea
+    ports:
+      - "5432:5432"
+    volumes:
+      - aurea-db:/var/lib/postgresql/data
+volumes:
+  aurea-db:
