@@ -32,6 +32,17 @@
 
 @layer base {
   html { -webkit-tap-highlight-color: transparent; }
+  /* App installata su iPhone: la barra di stato è trasparente (black-translucent). Questa fascia scura
+     resta sotto orario e batteria, così i contenuti che scorrono non finiscono sotto le icone. */
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0 0 auto;
+    height: env(safe-area-inset-top);
+    background: var(--color-ink);
+    z-index: 80;
+    pointer-events: none;
+  }
   body {
     background: var(--color-ivory);
     color: var(--color-ink);

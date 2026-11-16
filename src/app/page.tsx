@@ -24,7 +24,7 @@ export default async function Landing() {
       <div className="relative overflow-hidden">
         <Mandala className="pointer-events-none absolute -right-40 -top-40 h-[42rem] w-[42rem] text-gold/25" spin />
         <Mandala className="pointer-events-none absolute -bottom-56 -left-48 h-[34rem] w-[34rem] text-gold/10" petals={12} />
-        <header className="relative mx-auto flex max-w-6xl items-center justify-between px-6 py-6">
+        <header className="relative mx-auto flex max-w-6xl items-center justify-between px-6 pb-6 pt-[calc(env(safe-area-inset-top)+1.5rem)]">
           <Logo light />
           <Link href="/accedi" className="btn btn-outline !border-gold/70 !text-gold-light hover:!text-ink">
             Accedi

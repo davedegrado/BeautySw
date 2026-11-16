@@ -59,6 +59,7 @@ function spaFallback(): Plugin {
     writeBundle(opts) {
       const out = opts.dir!;
       copyFileSync(`${out}/index.html`, `${out}/404.html`);
+      copyFileSync(fileURLToPath(new URL("./sw.js", import.meta.url)), `${out}/demo-sw.js`);
       writeFileSync(`${out}/.nojekyll`, "");
     },
   };

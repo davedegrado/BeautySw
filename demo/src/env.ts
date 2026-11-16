@@ -7,11 +7,13 @@ g.process.env ??= {};
 g.process.env.NODE_ENV ??= import.meta.env.MODE;
 g.Buffer ??= Buffer;
 
-// Il service worker dell'app è registrato come "/sw.js": su GitHub Pages va cercato sotto /<repository>/.
+// Nella demo c'è un service worker dedicato (demo/sw.js): cache dei file e installazione come app.
+// Anche le registrazioni fatte dall'app ("/sw.js") puntano a quello.
 if (typeof navigator !== "undefined" && "serviceWorker" in navigator) {
   const sw = navigator.serviceWorker;
   const register = sw.register.bind(sw);
-  const base = import.meta.env.BASE_URL.replace(/\/$/, "");
+  const demoSw = import.meta.env.BASE_URL + "demo-sw.js";
   sw.register = (url: string | URL, opts?: RegistrationOptions) =>
-    register(typeof url === "string" && url.startsWith("/") ? base + url : url, opts);
+    register(typeof url === "string" && url.endsWith("/sw.js") ? demoSw : url, opts);
+  if (import.meta.env.PROD) addEventListener("load", () => register(demoSw).catch(() => {}));
 }
