@@ -32,6 +32,26 @@ function markServerComponents(): Plugin {
 }
 
 /** GitHub Pages: 404.html = index.html, così i link diretti alle pagine interne funzionano. */
+/** Manifest PWA generato da src/app/manifest.ts, con percorsi relativi (funziona sotto /<repository>/). */
+function webManifest(): Plugin {
+  return {
+    name: "aurea-web-manifest",
+    async generateBundle() {
+      const { default: manifest } = await import("../src/app/manifest");
+      const m = manifest();
+      const rel = (u: string) => (u.startsWith("/") ? "." + u : u);
+      const out = {
+        ...m,
+        id: "./",
+        start_url: "./",
+        scope: "./",
+        icons: m.icons?.map((i) => ({ ...i, src: rel(i.src) })),
+      };
+      this.emitFile({ type: "asset", fileName: "manifest.webmanifest", source: JSON.stringify(out, null, 2) });
+    },
+  };
+}
+
 function spaFallback(): Plugin {
   return {
     name: "aurea-spa-fallback",
@@ -48,11 +68,12 @@ export default defineConfig({
   root: fileURLToPath(new URL(".", import.meta.url)),
   base: process.env.DEMO_BASE || "/",
   publicDir: fileURLToPath(new URL("../public", import.meta.url)),
-  plugins: [react(), tailwindcss(), markServerComponents(), spaFallback()],
+  plugins: [react(), tailwindcss(), markServerComponents(), webManifest(), spaFallback()],
   resolve: {
     alias: [
       { find: /^@\/db$/, replacement: fileURLToPath(new URL("./src/db.ts", import.meta.url)) },
       { find: /^@\/lib\/format$/, replacement: shim("format.ts") },
+      { find: /^(@\/components|\.)\/push$/, replacement: shim("push.tsx") },
       { find: /^@\//, replacement: src },
       { find: /^next\/link$/, replacement: shim("next-link.tsx") },
       { find: /^next\/navigation$/, replacement: shim("next-navigation.ts") },
