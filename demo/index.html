@@ -22,7 +22,33 @@
     </style>
   </head>
   <body>
-    <div id="boot"><div class="ring"></div><p>Aurea · Demo</p><small id="boot-msg">Preparazione della demo…</small></div>
+    <div id="boot"><div class="ring"></div><p>Aurea · Demo</p><small id="boot-msg">Preparazione della demo…</small><small id="boot-err" style="display:none;font:11px/1.5 ui-monospace,Menlo,monospace;color:rgba(250,247,240,.4);word-break:break-word"></small></div>
+    <script>
+      // Diagnostica di avvio (volutamente in JavaScript "vecchio stile": deve funzionare anche se il resto non parte).
+      (function () {
+        var shown = false;
+        window.__bootError = function (e) {
+          var boot = document.getElementById("boot");
+          if (!boot || shown) return;
+          shown = true;
+          var ring = boot.querySelector(".ring");
+          if (ring) ring.style.display = "none";
+          var text = e && (e.message || e.reason || e) ? String((e.name ? e.name + ": " : "") + (e.message || e.reason || e)) : "errore sconosciuto";
+          document.getElementById("boot-msg").textContent =
+            "Non è stato possibile avviare la demo su questo dispositivo. Chiudi le altre schede e riprova; se il problema resta, comunica il dettaglio qui sotto.";
+          var d = document.getElementById("boot-err");
+          d.style.display = "block";
+          d.textContent = text.slice(0, 300);
+        };
+        window.addEventListener("error", function (ev) { if (document.getElementById("boot")) window.__bootError(ev.error || ev.message); });
+        window.addEventListener("unhandledrejection", function (ev) { if (document.getElementById("boot")) window.__bootError(ev.reason); });
+        setTimeout(function () {
+          var m = document.getElementById("boot-msg");
+          if (m && !shown) m.textContent += " Il primo avvio può richiedere fino a un minuto: vengono scaricati circa 15 MB.";
+        }, 12000);
+      })();
+    </script>
+    <script nomodule>window.__bootError("Browser troppo datato: servono Safari 16.4 o successivi, Chrome o Firefox recenti.");</script>
     <div id="root"></div>
     <script type="module" src="./src/main.tsx"></script>
   </body>

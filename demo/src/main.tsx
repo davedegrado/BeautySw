@@ -21,5 +21,5 @@ ensureDemo(status)
   })
   .catch((e) => {
     console.error(e);
-    status("Impossibile avviare la demo in questo browser. Prova con una versione aggiornata di Chrome, Safari o Firefox.");
+    (window as unknown as { __bootError?: (m: unknown) => void }).__bootError?.(e);
   });
