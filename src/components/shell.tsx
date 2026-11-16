@@ -139,7 +139,7 @@ export function Shell({
       </aside>
 
       {/* Barra superiore mobile */}
-      <header className="sticky top-0 z-30 flex items-center justify-between border-b border-gold/20 bg-ink px-4 py-2.5 lg:hidden">
+      <header className="sticky top-0 z-30 flex items-center justify-between border-b border-gold/20 bg-ink px-4 pb-2.5 pt-[calc(env(safe-area-inset-top)+0.625rem)] lg:hidden">
         <Link href={root}>
           <Logo light small />
         </Link>
@@ -161,7 +161,7 @@ export function Shell({
       {open && (
         <div className="fixed inset-0 z-50 lg:hidden">
           <div className="absolute inset-0 animate-fade bg-ink/70" onClick={() => setOpen(false)} />
-          <div className="absolute inset-y-0 right-0 flex w-[19rem] max-w-[88vw] animate-fade flex-col overflow-hidden bg-ink px-4 py-5">
+          <div className="absolute inset-y-0 right-0 flex w-[19rem] max-w-[88vw] animate-fade flex-col overflow-hidden bg-ink px-4 pb-[calc(env(safe-area-inset-bottom)+1.25rem)] pt-[calc(env(safe-area-inset-top)+1.25rem)]">
             <Mandala className="pointer-events-none absolute -bottom-24 -right-24 h-72 w-72 text-gold/[0.13]" />
             <div className="mb-5 flex items-center justify-between px-2">
               <Logo light small />
