@@ -1,5 +1,5 @@
 import { cache } from "react";
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { jwtVerify, SignJWT } from "jose";
 import { eq } from "drizzle-orm";
@@ -20,10 +20,14 @@ export async function createSession(user: Pick<User, "id" | "sessionVersion">) {
     .setIssuedAt()
     .setExpirationTime(`${MAX_AGE}s`)
     .sign(await getAuthSecret());
+  // "Secure" solo su HTTPS: così l'accesso funziona anche provando l'app da telefono
+  // sulla rete locale (http://192.168.x.x:3000), dove un cookie Secure verrebbe scartato.
+  const h = await headers();
+  const https = (h.get("x-forwarded-proto") ?? "").split(",")[0].trim() === "https";
   (await cookies()).set(COOKIE, token, {
     httpOnly: true,
     sameSite: "lax",
-    secure: process.env.NODE_ENV === "production" && !process.env.INSECURE_COOKIES,
+    secure: https,
     path: "/",
     maxAge: MAX_AGE,
   });

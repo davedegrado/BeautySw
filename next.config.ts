@@ -1,6 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // Sviluppo: consente di aprire l'app da altri dispositivi della rete locale (es. il telefono).
+  allowedDevOrigins: ["192.168.*.*", "10.*.*.*", "172.*.*.*", "*.local"],
   serverExternalPackages: ["pg", "web-push", "bcryptjs"],
   experimental: {
     serverActions: { bodySizeLimit: "6mb" },
