@@ -20,7 +20,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
         </div>
         <p className="relative text-xs tracking-wide text-ivory/40">Prenotazioni · Promozioni · Eventi · Luxury Rewards</p>
       </aside>
-      <main className="flex flex-col justify-center px-6 py-10 sm:px-12">
+      <main className="flex flex-col justify-center px-6 pb-10 pt-[calc(env(safe-area-inset-top)+2.5rem)] sm:px-12">
         <div className="mx-auto w-full max-w-md animate-rise">
           <Link href="/" className="mb-10 inline-block lg:hidden">
             <Logo />

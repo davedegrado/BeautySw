@@ -48,7 +48,7 @@ export function DemoBar() {
   };
 
   return (
-    <div className="fixed bottom-[calc(env(safe-area-inset-bottom)+5.25rem)] right-3 z-50 lg:bottom-4 lg:right-4">
+    <div className="fixed bottom-[calc(env(safe-area-inset-bottom)+5.25rem)] right-3 z-40 lg:bottom-4 lg:right-4">
       {open && (
         <div className="mb-2 w-72 rounded-2xl border border-gold/30 bg-ink/95 p-4 text-ivory shadow-2xl backdrop-blur">
           <div className="mb-3 flex items-center justify-between">
