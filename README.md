@@ -33,6 +33,33 @@ Account dimostrativi (password `Aurea2026!`):
 **Per partire con il tuo centro (senza dati demo):** esegui solo `npm run db:migrate`,
 apri l'app e verrai portato su `/setup`, dove crei il centro e l'account amministratore.
 
+## Demo online (GitHub Pages)
+
+Una versione dimostrativa completa, **senza server né database da configurare**, viene pubblicata
+automaticamente su GitHub Pages: `https://<utente>.github.io/<repository>/`.
+
+- Gira interamente nel browser: lo stesso codice dell'app usa PostgreSQL compilato in WebAssembly
+  ([PGlite](https://pglite.dev)), salvato nel browser (IndexedDB). Al primo avvio crea il centro demo.
+- Il pulsante **Demo** in basso a destra permette di entrare come amministratore, dipendente o
+  cliente con un clic e di **ripristinare i dati**. Funziona anche il login con gli account demo.
+- I dati sono **per dispositivo**: una prenotazione fatta dal telefono non compare sul computer.
+  Ogni 3 giorni i dati demo vengono ricreati, così gli appuntamenti restano attuali.
+- Non attivi nella demo: notifiche push (restano quelle in-app) e job pianificati.
+
+Prima pubblicazione: *Settings → Pages → Build and deployment → Source: **GitHub Actions***.
+Il workflow `.github/workflows/demo-pages.yml` compila la demo a ogni push e la pubblica dal branch
+principale (o manualmente da *Actions → Demo su GitHub Pages → Run workflow*).
+
+```bash
+npm run demo:dev       # demo in locale con ricaricamento automatico
+npm run demo:build     # build statica in demo/dist
+npm run demo:preview   # anteprima della build
+```
+
+Il codice della demo è in `demo/`: adattatori per le parti di Next.js (`next/link`,
+`next/navigation`, cookie, cache), router che esegue nel browser le pagine di `src/app` e
+database PGlite. L'app vera non viene modificata.
+
 ## Cosa configurare
 
 | Variabile | Obbligatoria | A cosa serve |

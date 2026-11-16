@@ -4,6 +4,7 @@ import { createContext, useCallback, useContext, useEffect, useRef, useState, us
 import { createPortal } from "react-dom";
 import { AlertCircle, Check, ImagePlus, Loader2, X } from "lucide-react";
 import type { ActionResult } from "@/lib/errors";
+import { imageUrl } from "@/lib/format";
 
 /* ------------------------------------------------------------------ Toast */
 
@@ -235,7 +236,7 @@ export function ActionButton({
 
 /** Campo di caricamento immagine con anteprima. */
 export function ImageField({ name = "image", current, label = "Immagine" }: { name?: string; current?: string | null; label?: string }) {
-  const [preview, setPreview] = useState<string | null>(current ? `/api/images/${current}` : null);
+  const [preview, setPreview] = useState<string | null>(imageUrl(current));
   const [removed, setRemoved] = useState(false);
   const input = useRef<HTMLInputElement>(null);
   return (
