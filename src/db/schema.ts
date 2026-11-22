@@ -180,7 +180,6 @@ export const appointments = pgTable(
     endAt: ts("end_at").notNull(),
     status: text("status").$type<AppointmentStatus>().notNull().default("confirmed"),
     priceCents: integer("price_cents").notNull(),
-    paid: boolean("paid").notNull().default(false),
     notes: text("notes").notNull().default(""),
     pointsAwarded: integer("points_awarded"),
     reminderSentAt: ts("reminder_sent_at"),

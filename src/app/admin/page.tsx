@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { and, asc, desc, eq, gte, lt, sql } from "drizzle-orm";
-import { AlertCircle, Cake, CalendarDays, Crown, Euro, PartyPopper, Tag, UserPlus, Users } from "lucide-react";
+import { AlertCircle, Cake, CalendarDays, Crown, PartyPopper, Tag, UserPlus, Users } from "lucide-react";
 import { db, t } from "@/db";
 import { ApptList } from "@/components/appt-list";
 import { NewAppointmentButton } from "@/components/calendar-client";
@@ -9,7 +9,7 @@ import { PageHeader, Stat } from "@/components/ui";
 import { appointmentFormData } from "@/lib/admin-data";
 import { toVM } from "@/lib/calendar";
 import { addDays, fmt, fmtDay, localDate, startOfWeek, zoned } from "@/lib/dates";
-import { eur, fullName } from "@/lib/format";
+import { fullName } from "@/lib/format";
 import { activePromotions, appointmentRows, eventsWithSeats } from "@/lib/queries";
 import { requireRole } from "@/lib/session";
 
@@ -42,17 +42,21 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
   const bucket = days <= 31 ? "day" : days <= 92 ? "week" : "month";
   const bucketExpr = sql<string>`to_char(date_trunc(${sql.raw(`'${bucket}'`)}, ${A.startAt} at time zone ${tz}), 'YYYY-MM-DD')`;
 
-  const [todayRows, [week], [clients], [newClients], [revenue], series, topTreatments, topEmployees, promos, events, birthdays, [points], [pending], form] = await Promise.all([
+  const [todayRows, [week], [clients], [newClients], [period], series, topTreatments, topEmployees, promos, events, birthdays, [points], [pending], form] = await Promise.all([
     appointmentRows(c.id, and(gte(A.startAt, dayStart), lt(A.startAt, dayEnd), sql`${A.status} <> 'cancelled'`)),
     db.select({ n: count }).from(A).where(and(inCenter, live, gte(A.startAt, weekStart), lt(A.startAt, weekEnd))),
     db.select({ n: count }).from(t.users).where(and(eq(t.users.centerId, c.id), eq(t.users.role, "client"), eq(t.users.active, true))),
     db.select({ n: count }).from(t.users).where(and(eq(t.users.centerId, c.id), eq(t.users.role, "client"), gte(t.users.createdAt, since))),
     db
-      .select({ total: sql<number>`coalesce(sum(${A.priceCents}), 0)::int`, n: count })
+      .select({
+        completed: sql<number>`count(*) filter (where ${A.status} = 'completed')::int`,
+        cancelled: sql<number>`count(*) filter (where ${A.status} = 'cancelled')::int`,
+        noShow: sql<number>`count(*) filter (where ${A.status} = 'no_show')::int`,
+      })
       .from(A)
-      .where(and(inCenter, eq(A.status, "completed"), eq(A.paid, true), gte(A.startAt, since), lt(A.startAt, dayEnd))),
+      .where(and(inCenter, gte(A.startAt, since), lt(A.startAt, dayEnd))),
     db
-      .select({ k: bucketExpr, total: sql<number>`coalesce(sum(case when ${A.status} = 'completed' and ${A.paid} then ${A.priceCents} else 0 end), 0)::int`, n: count })
+      .select({ k: bucketExpr, n: count })
       .from(A)
       .where(and(inCenter, live, gte(A.startAt, since), lt(A.startAt, dayEnd)))
       .groupBy(sql`1`), // stessa espressione della prima colonna
@@ -92,14 +96,14 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
 
   // Serie temporale completa (anche i periodi senza appuntamenti).
   const byKey = new Map(series.map((r) => [r.k, r]));
-  const points_: { label: string; title: string; revenue: number; n: number }[] = [];
-  if (bucket === "day") for (let i = 0; i < days; i++) { const d = addDays(periodFrom, i); points_.push({ label: fmtDay(d, "d/M"), title: fmtDay(d, "EEEE d MMMM"), revenue: byKey.get(d)?.total ?? 0, n: byKey.get(d)?.n ?? 0 }); }
-  else if (bucket === "week") for (let d = startOfWeek(periodFrom); d <= today; d = addDays(d, 7)) points_.push({ label: fmtDay(d, "d/M"), title: `Settimana del ${fmtDay(d, "d MMMM")}`, revenue: byKey.get(d)?.total ?? 0, n: byKey.get(d)?.n ?? 0 });
+  const points_: { label: string; title: string; n: number }[] = [];
+  if (bucket === "day") for (let i = 0; i < days; i++) { const d = addDays(periodFrom, i); points_.push({ label: fmtDay(d, "d/M"), title: fmtDay(d, "EEEE d MMMM"), n: byKey.get(d)?.n ?? 0 }); }
+  else if (bucket === "week") for (let d = startOfWeek(periodFrom); d <= today; d = addDays(d, 7)) points_.push({ label: fmtDay(d, "d/M"), title: `Settimana del ${fmtDay(d, "d MMMM")}`, n: byKey.get(d)?.n ?? 0 });
   else {
     const cur = new Date(`${periodFrom.slice(0, 8)}01T12:00:00Z`);
     while (cur.toISOString().slice(0, 10) <= today) {
       const d = cur.toISOString().slice(0, 10);
-      points_.push({ label: fmtDay(d, "MMM"), title: fmtDay(d, "MMMM yyyy"), revenue: byKey.get(d)?.total ?? 0, n: byKey.get(d)?.n ?? 0 });
+      points_.push({ label: fmtDay(d, "MMM"), title: fmtDay(d, "MMMM yyyy"), n: byKey.get(d)?.n ?? 0 });
       cur.setUTCMonth(cur.getUTCMonth() + 1);
     }
   }
@@ -142,15 +146,15 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
         <section className="card p-5 lg:col-span-2">
           <div className="flex flex-wrap items-end justify-between gap-2">
             <div>
-              <p className="label mb-1">Fatturato incassato</p>
-              <p className="font-serif text-5xl leading-none">{eur(revenue.total)}</p>
+              <p className="label mb-1">Appuntamenti nel periodo</p>
+              <p className="font-serif text-5xl leading-none">{points_.reduce((n, p) => n + p.n, 0)}</p>
             </div>
             <p className="text-xs text-smoke">
-              {revenue.n} trattamenti pagati · scontrino medio {eur(revenue.n ? Math.round(revenue.total / revenue.n) : 0)}
+              {period.completed} completati · {period.cancelled} disdetti{period.noShow ? ` · ${period.noShow} non presentati` : ""}
             </p>
           </div>
           <div className="mt-4">
-            <BarChart data={points_.map((p) => ({ label: p.label, title: p.title, value: p.revenue / 100 }))} format={(v) => eur(v * 100)} />
+            <BarChart data={points_.map((p) => ({ label: p.label, title: p.title, value: p.n }))} />
           </div>
         </section>
         <section className="card-dark relative overflow-hidden p-5">
@@ -169,11 +173,7 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
         </section>
       </div>
 
-      <div className="mt-4 grid gap-4 lg:grid-cols-3">
-        <section className="card p-5">
-          <p className="label mb-4">Appuntamenti nel periodo</p>
-          <BarChart data={points_.map((p) => ({ label: p.label, title: p.title, value: p.n }))} height={190} width={320} />
-        </section>
+      <div className="mt-4 grid gap-4 lg:grid-cols-2">
         <section className="card p-5">
           <p className="label mb-4">Trattamenti più richiesti</p>
           <RankList items={topTreatments} />
@@ -241,10 +241,7 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
               </ul>
             )}
           </section>
-          <div className="grid grid-cols-2 gap-4">
-            <Stat label="Nuovi clienti" value={newClients.n} hint="nel periodo" icon={<UserPlus className="h-5 w-5" strokeWidth={1.3} />} />
-            <Stat label="Incasso medio" value={eur(revenue.n ? Math.round(revenue.total / revenue.n) : 0)} hint="per trattamento" icon={<Euro className="h-5 w-5" strokeWidth={1.3} />} />
-          </div>
+          <Stat label="Nuovi clienti" value={newClients.n} hint="registrati nel periodo" icon={<UserPlus className="h-5 w-5" strokeWidth={1.3} />} />
         </div>
       </div>
     </>

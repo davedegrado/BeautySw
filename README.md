@@ -92,8 +92,8 @@ Servizi esterni da predisporre:
   esclusione nel database (`appointments_no_overlap`).
 - **Disdetta** con termine configurabile (centro e, se serve, singolo trattamento); il cliente
   vede sempre entro quando può disdire. L'amministratore può sempre annullare/spostare.
-- **Luxury Rewards**: punti per euro e/o per trattamento, accreditati al completamento *e*
-  pagamento; premi, barra di avanzamento, riscatto con codice `LUX-XXXX-XXXX`, storico,
+- **Luxury Rewards**: punti per euro di listino e/o per trattamento, accreditati quando lo staff
+  segna il trattamento come completato; premi, barra di avanzamento, riscatto con codice `LUX-XXXX-XXXX`, storico,
   rettifiche manuali, classifica clienti.
 - **Promozioni ed eventi** con immagini, categorie, validità, posti disponibili e iscrizioni.
 - **Notifiche** in-app + push (Web Push): conferma, promemoria, modifica/annullamento, nuove
@@ -142,6 +142,6 @@ npm run test:flows   # 44 controlli su prenotazione, doppie prenotazioni, disdet
 npm run typecheck
 ```
 
-Limiti noti: il limite ai tentativi di login è in memoria (per istanza); non sono integrati
-pagamenti online né invio email; lo spostamento degli appuntamenti avviene dalla finestra di
+Limiti noti: il limite ai tentativi di login è in memoria (per istanza); l'app non gestisce
+pagamenti né fatturato (i prezzi sono solo informativi) e non invia email; lo spostamento degli appuntamenti avviene dalla finestra di
 modifica (non con trascinamento).

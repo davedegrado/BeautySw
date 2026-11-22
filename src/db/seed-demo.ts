@@ -182,7 +182,7 @@ export async function seedDemoCenter(opts: { reset?: boolean } = {}) {
         const startAt = zoned(date, h, TZ);
         const [appt] = await db
           .insert(t.appointments)
-          .values({ centerId: c, clientId: client.id, employeeId: staff[e].id, treatmentId: tr.id, startAt, endAt: new Date(startAt.getTime() + tr.durationMinutes * 60000), status: "completed", paid: true, priceCents: tr.priceCents, pointsAwarded: pointsFor(center, tr.priceCents), reminderSentAt: startAt, createdAt: new Date(startAt.getTime() - 5 * 86400000) })
+          .values({ centerId: c, clientId: client.id, employeeId: staff[e].id, treatmentId: tr.id, startAt, endAt: new Date(startAt.getTime() + tr.durationMinutes * 60000), status: "completed", priceCents: tr.priceCents, pointsAwarded: pointsFor(center, tr.priceCents), reminderSentAt: startAt, createdAt: new Date(startAt.getTime() - 5 * 86400000) })
           .returning();
         await db.transaction(async (tx) => {
           await adjustPoints(tx, { centerId: c, userId: client.id, delta: appt.pointsAwarded!, type: "earn", reason: `Trattamento: ${tr.name}`, appointmentId: appt.id });

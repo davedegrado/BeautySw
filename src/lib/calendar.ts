@@ -7,7 +7,6 @@ import type { ApptRow } from "./queries";
 export type ApptVM = {
   id: string;
   status: string;
-  paid: boolean;
   startISO: string;
   date: string;
   startMin: number;
@@ -36,7 +35,6 @@ export function toVM(a: ApptRow, center: Pick<Center, "timezone">, opts: { hideC
   return {
     id: a.id,
     status: a.status,
-    paid: a.paid,
     startISO: a.startAt.toISOString(),
     date: localDate(a.startAt, tz),
     startMin,

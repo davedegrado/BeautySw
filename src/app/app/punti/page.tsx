@@ -22,7 +22,7 @@ export default async function PointsPage() {
   ]);
   const perEuro = s.center.pointsPerEuro / 100;
   const rule = [
-    perEuro > 0 ? `${perEuro.toLocaleString("it-IT")} ${perEuro === 1 ? "punto" : "punti"} per ogni euro speso` : null,
+    perEuro > 0 ? `${perEuro.toLocaleString("it-IT")} ${perEuro === 1 ? "punto" : "punti"} per ogni euro di trattamento` : null,
     s.center.pointsPerTreatment > 0 ? `${s.center.pointsPerTreatment} punti per ogni trattamento` : null,
   ].filter(Boolean).join(" + ");
 
@@ -52,7 +52,7 @@ export default async function PointsPage() {
               "I premi saranno presto disponibili."
             )}
           </p>
-          {rule && <p className="mt-1 text-xs text-ivory/45">Come funziona: {rule}, accreditati al completamento e pagamento del trattamento.</p>}
+          {rule && <p className="mt-1 text-xs text-ivory/45">Come funziona: {rule}, accreditati dopo aver effettuato il trattamento.</p>}
         </div>
       </section>
 

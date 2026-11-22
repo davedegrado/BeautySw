@@ -129,14 +129,13 @@ async function main() {
     await rejects("dipendente non può spostare", () => updateAppointment(center, actor(emp2), { appointmentId: a2.id, start: at(1020) }));
 
     console.log("\nPunti fedeltà e premi");
-    await rejects("dipendente non può completare appuntamenti di colleghi", () => completeAppointment(center, actor(emp1), a2.id, true));
-    await rejects("cliente non può completare", () => completeAppointment(center, actor(bea), a2.id, true));
-    const unpaid = await completeAppointment(center, actor(emp2), a2.id, false);
+    await rejects("dipendente non può completare appuntamenti di colleghi", () => completeAppointment(center, actor(emp1), a2.id));
+    await rejects("cliente non può completare", () => completeAppointment(center, actor(bea), a2.id));
     const bal = async (id: string) => (await db.select().from(t.users).where(eq(t.users.id, id)))[0].pointsBalance;
-    check("completato ma non pagato: nessun punto", unpaid.points === 0 && (await bal(bea.id)) === 0);
-    const paidRes = await completeAppointment(center, actor(admin), a2.id, true);
-    check("pagamento registrato: 120 punti (1 punto per euro)", paidRes.points === 120 && (await bal(bea.id)) === 120);
-    await completeAppointment(center, actor(admin), a2.id, true);
+    check("prima del completamento nessun punto", (await bal(bea.id)) === 0);
+    const done = await completeAppointment(center, actor(emp2), a2.id);
+    check("completato dal dipendente: 120 punti (1 punto per euro)", done.points === 120 && (await bal(bea.id)) === 120);
+    await completeAppointment(center, actor(admin), a2.id);
     check("completamento ripetuto non duplica i punti", (await bal(bea.id)) === 120);
     const unlocked = await db.select().from(t.notifications).where(and(eq(t.notifications.userId, bea.id), eq(t.notifications.type, "reward")));
     check("notifica premio sbloccato (soglia 100)", unlocked.length === 1);

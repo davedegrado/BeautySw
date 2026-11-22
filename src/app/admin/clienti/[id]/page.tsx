@@ -12,7 +12,7 @@ import { Avatar, Field, SectionTitle, Stat, StatusBadge } from "@/components/ui"
 import { appointmentFormData } from "@/lib/admin-data";
 import { toVM } from "@/lib/calendar";
 import { fmt, fmtDay } from "@/lib/dates";
-import { eur, fullName } from "@/lib/format";
+import { fullName } from "@/lib/format";
 import { appointmentRows } from "@/lib/queries";
 import { requireRole } from "@/lib/session";
 
@@ -33,7 +33,7 @@ export default async function ClientDetail({ params }: { params: Promise<{ id: s
   const upcoming = appts.filter((a) => a.status === "confirmed" && !a.past).reverse();
   const past = appts.filter((a) => !(a.status === "confirmed" && !a.past));
   const completed = rows.filter((r) => r.status === "completed");
-  const spent = completed.filter((r) => r.paid).reduce((sum, r) => sum + r.priceCents, 0);
+  const lastVisit = completed[0]?.startAt ?? null;
 
   return (
     <>
@@ -85,7 +85,7 @@ export default async function ClientDetail({ params }: { params: Promise<{ id: s
       <div className="mb-8 grid grid-cols-2 gap-4 lg:grid-cols-4">
         <Stat label="Punti disponibili" value={u.pointsBalance} />
         <Stat label="Trattamenti completati" value={completed.length} />
-        <Stat label="Spesa totale" value={eur(spent)} />
+        <Stat label="Ultima visita" value={lastVisit ? fmt(lastVisit, tz, "d MMM") : "—"} hint={lastVisit ? fmt(lastVisit, tz, "yyyy") : undefined} />
         <Stat label="Prossimi appuntamenti" value={upcoming.length} />
       </div>
 

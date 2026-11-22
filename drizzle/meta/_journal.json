@@ -15,6 +15,13 @@
       "when": 1794843682222,
       "tag": "0001_constraints",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1795360792328,
+      "tag": "0002_remove_paid",
+      "breakpoints": true
     }
   ]
 }

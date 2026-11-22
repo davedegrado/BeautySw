@@ -14,7 +14,6 @@ export function appointmentRows(centerId: string, where?: ReturnType<typeof and>
       endAt: t.appointments.endAt,
       status: t.appointments.status,
       priceCents: t.appointments.priceCents,
-      paid: t.appointments.paid,
       notes: t.appointments.notes,
       pointsAwarded: t.appointments.pointsAwarded,
       clientId: t.appointments.clientId,

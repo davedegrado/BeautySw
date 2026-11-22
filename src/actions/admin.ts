@@ -102,7 +102,7 @@ export async function completeAppointmentAction(_: R, fd: FormData) {
   return run(async () => {
     const s = await actionSession("admin", "employee");
     const f = form(fd);
-    const { points } = await completeAppointment(s.center, actorOf(s), f.id("id"), f.str("paid") !== "false");
+    const { points } = await completeAppointment(s.center, actorOf(s), f.id("id"));
     return points > 0 ? `Appuntamento completato: ${points} punti accreditati al cliente.` : "Appuntamento completato.";
   });
 }

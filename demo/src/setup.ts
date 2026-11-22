@@ -5,7 +5,7 @@ const migrations = import.meta.glob("../../drizzle/*.sql", { query: "?raw", impo
 
 /** Dopo quanti giorni i dati demo vengono ricreati (le date sono relative al giorno di creazione). */
 const MAX_AGE_DAYS = 3;
-const VERSION = "1";
+const VERSION = "2";
 
 async function seededAt(): Promise<Date | null> {
   try {

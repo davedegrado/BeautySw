@@ -213,7 +213,6 @@ export function ApptTrigger({ appt, mode, data, className, style, children }: { 
           <div className="space-y-5">
             <div className="flex flex-wrap items-center gap-2">
               <StatusBadge status={appt.status} />
-              {appt.status === "completed" && <span className={`badge ${appt.paid ? "badge-green" : "badge-red"}`}>{appt.paid ? "Pagato" : "Da pagare"}</span>}
               {appt.pointsAwarded ? <span className="badge badge-gold">+{appt.pointsAwarded} punti</span> : null}
             </div>
             <ul className="space-y-2.5 text-sm">
@@ -260,14 +259,9 @@ export function ApptTrigger({ appt, mode, data, className, style, children }: { 
             <p className="font-serif text-3xl text-gold-deep">{eur(appt.priceCents)}</p>
             <div className="gold-line" />
             <div className="flex flex-wrap gap-2">
-              {(active || (appt.status === "completed" && !appt.paid)) && (
-                <ActionButton action={completeAppointmentAction} fields={{ id: appt.id, paid: "true" }} className="btn btn-gold btn-sm" onDone={close}>
-                  <Check className="h-3.5 w-3.5" /> {active ? "Completato e pagato" : "Registra pagamento"}
-                </ActionButton>
-              )}
               {active && (
-                <ActionButton action={completeAppointmentAction} fields={{ id: appt.id, paid: "false" }} className="btn btn-outline btn-sm" onDone={close}>
-                  Completato, da pagare
+                <ActionButton action={completeAppointmentAction} fields={{ id: appt.id }} className="btn btn-gold btn-sm" onDone={close}>
+                  <Check className="h-3.5 w-3.5" /> Segna come completato
                 </ActionButton>
               )}
               {active && appt.past && (

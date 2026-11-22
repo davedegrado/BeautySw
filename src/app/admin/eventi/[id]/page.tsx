@@ -70,11 +70,10 @@ export default async function EventAdminDetail({ params }: { params: Promise<{ i
         {ev.description && <p className="whitespace-pre-line p-6 text-sm leading-relaxed text-anthracite">{ev.description}</p>}
       </div>
 
-      <div className="mb-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
+      <div className="mb-6 grid grid-cols-2 gap-4 lg:grid-cols-3">
         <Stat label="Iscritti" value={taken} icon={<Users className="h-5 w-5" strokeWidth={1.3} />} />
         <Stat label="Posti disponibili" value={left ?? "∞"} hint={ev.maxParticipants ? `su ${ev.maxParticipants} totali` : "posti illimitati"} />
         <Stat label="Quota" value={ev.priceCents ? eur(ev.priceCents) : "Gratuito"} />
-        <Stat label="Incasso previsto" value={eur(ev.priceCents * taken)} />
       </div>
 
       <section className="card">

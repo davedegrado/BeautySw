@@ -104,10 +104,10 @@ export default async function LoyaltyAdmin() {
         <div className="space-y-8">
           <section className="card p-6">
             <h2 className="mb-1 text-2xl">Regole di accumulo</h2>
-            <p className="mb-4 text-sm text-smoke">I punti vengono accreditati quando un trattamento è completato e pagato.</p>
+            <p className="mb-4 text-sm text-smoke">I punti vengono accreditati quando un trattamento viene segnato come completato, in base al prezzo di listino.</p>
             <ActionForm action={saveLoyaltySettingsAction} submitLabel="Salva regole">
               <div className="grid grid-cols-2 gap-3">
-                <Field label="Punti per ogni euro speso" hint="Es. 1 = 1 punto per euro · 0,5 = 1 punto ogni 2 euro.">
+                <Field label="Punti per ogni euro di trattamento" hint="Es. 1 = 1 punto per euro · 0,5 = 1 punto ogni 2 euro.">
                   <input name="pointsPerEuro" inputMode="decimal" required defaultValue={(c.pointsPerEuro / 100).toString().replace(".", ",")} className="input" />
                 </Field>
                 <Field label="Punti fissi per trattamento" hint="Bonus aggiunto a ogni trattamento completato.">

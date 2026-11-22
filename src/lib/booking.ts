@@ -308,10 +308,10 @@ export async function updateAppointment(center: Center, actor: Actor, input: Upd
 }
 
 /**
- * Segna l'appuntamento come completato e, se pagato, accredita i punti fedeltà
+ * Segna l'appuntamento come completato e accredita i punti fedeltà
  * (una sola volta: `pointsAwarded` fa da guardia di idempotenza).
  */
-export async function completeAppointment(center: Center, actor: Actor, appointmentId: string, paid: boolean): Promise<{ points: number }> {
+export async function completeAppointment(center: Center, actor: Actor, appointmentId: string): Promise<{ points: number }> {
   if (actor.role === "client") throw new AppError("Operazione non consentita.");
   const { appt, treatment } = await loadAppt(center.id, appointmentId);
   assertCanTouch(actor, appt);
@@ -319,10 +319,9 @@ export async function completeAppointment(center: Center, actor: Actor, appointm
 
   const outcome = await db.transaction(async (tx) => {
     const [cur] = await tx.select().from(t.appointments).where(eq(t.appointments.id, appt.id)).for("update");
-    const nowPaid = cur.paid || paid;
     let points = 0;
     let balance: { before: number; after: number } | null = null;
-    if (nowPaid && cur.pointsAwarded == null) {
+    if (cur.pointsAwarded == null) {
       points = pointsFor(center, cur.priceCents);
       balance = await adjustPoints(tx, {
         centerId: center.id,
@@ -336,7 +335,7 @@ export async function completeAppointment(center: Center, actor: Actor, appointm
     }
     await tx
       .update(t.appointments)
-      .set({ status: "completed", paid: nowPaid, pointsAwarded: nowPaid && cur.pointsAwarded == null ? points : cur.pointsAwarded })
+      .set({ status: "completed", pointsAwarded: cur.pointsAwarded ?? points })
       .where(eq(t.appointments.id, cur.id));
     return { points, balance, clientId: cur.clientId };
   });
