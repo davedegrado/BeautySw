@@ -17,8 +17,8 @@ export default async function ClientsPage({ searchParams }: { searchParams: Prom
   const { q = "", ordine = "nome" } = await searchParams;
   const like = `%${q.trim()}%`;
   const U = t.users;
-  const visits = sql<number>`(select count(*)::int from appointments a where a.client_id = ${U.id} and a.status = 'completed')`;
-  const lastVisit = sql<Date | null>`(select max(a.start_at) from appointments a where a.client_id = ${U.id} and a.status = 'completed')`;
+  const visits = sql<number>`(select count(*)::int from appointments a where a.client_id = "users"."id" and a.status = 'completed')`;
+  const lastVisit = sql<Date | null>`(select max(a.start_at) from appointments a where a.client_id = "users"."id" and a.status = 'completed')`;
   const rows = await db
     .select({ u: U, visits, lastVisit })
     .from(U)

@@ -6,9 +6,11 @@ import { DEFAULT_PERMISSIONS } from "@/db/schema";
 import { form, run } from "@/lib/action";
 import { AppError, type ActionResult } from "@/lib/errors";
 import { fullName } from "@/lib/format";
+import { bookAppointment } from "@/lib/booking";
+import { clientFromForm, startFromForm } from "@/lib/booking-form";
 import { imageFromForm } from "@/lib/images";
 import { notifySafe } from "@/lib/notify";
-import { actionSession } from "@/lib/session";
+import { actionSession, actorOf } from "@/lib/session";
 
 type R = ActionResult | null;
 
@@ -52,5 +54,29 @@ export async function staffSaveTreatmentAction(_: R, fd: FormData) {
       url: "/admin/trattamenti?stato=pending",
     });
     return existing ? "Trattamento aggiornato e inviato in revisione." : "Trattamento salvato e associato al tuo profilo. Sarà prenotabile dopo l'approvazione dell'amministrazione.";
+  });
+}
+
+/**
+ * "Nuovo appuntamento" dal calendario del dipendente: l'appuntamento è sempre assegnato
+ * a lui. Valgono le stesse regole delle prenotazioni (orari liberi, nessuna sovrapposizione),
+ * quindi l'orario diventa subito non prenotabile dai clienti con quel dipendente.
+ */
+export async function staffCreateAppointmentAction(_: R, fd: FormData) {
+  return run(async () => {
+    const s = await actionSession("employee");
+    const f = form(fd);
+    const { start, manual } = startFromForm(s, f);
+    await bookAppointment({
+      center: s.center,
+      actor: actorOf(s),
+      clientId: await clientFromForm(s, f),
+      treatmentId: f.id("treatmentId", "Trattamento"),
+      employeeId: s.user.id,
+      start,
+      notes: f.str("notes", 1000),
+      force: manual,
+    });
+    return "Appuntamento inserito in agenda.";
   });
 }

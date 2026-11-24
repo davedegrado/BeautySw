@@ -18,8 +18,8 @@ export default async function EmployeesPage() {
     db
       .select({
         u: U,
-        treatments: sql<number>`(select count(*)::int from employee_treatments et where et.employee_id = ${U.id})`,
-        upcoming: sql<number>`(select count(*)::int from appointments a where a.employee_id = ${U.id} and a.status = 'confirmed' and a.start_at >= now())`,
+        treatments: sql<number>`(select count(*)::int from employee_treatments et where et.employee_id = "users"."id")`,
+        upcoming: sql<number>`(select count(*)::int from appointments a where a.employee_id = "users"."id" and a.status = 'confirmed' and a.start_at >= now())`,
       })
       .from(U)
       .where(and(eq(U.centerId, s.center.id), eq(U.role, "employee")))

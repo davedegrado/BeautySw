@@ -10,7 +10,7 @@ Tre aree con permessi distinti, verificati sul server a ogni richiesta:
 |---|---|---|
 | Cliente | `/app` | Home, Prenota, I miei appuntamenti, Promozioni, Eventi, I miei punti, Profilo, Notifiche |
 | Amministratore | `/admin` | Dashboard, Calendario, Clienti, Dipendenti, Trattamenti, Promozioni, Eventi, Programma fedeltà, Notifiche, Impostazioni |
-| Dipendente | `/staff` | Home, Il mio calendario, I miei appuntamenti, I miei trattamenti, **+ Nuovo trattamento**, Il mio profilo |
+| Dipendente | `/staff` | Home, Il mio calendario (con **Nuovo appuntamento**), I miei appuntamenti, I miei trattamenti, **+ Nuovo trattamento**, Promozioni sui propri trattamenti, Eventi, Il mio profilo |
 
 ## Avvio rapido
 
@@ -138,7 +138,7 @@ src/app/{app,admin,staff} le tre aree
 ## Verifica
 
 ```bash
-npm run test:flows   # 44 controlli su prenotazione, doppie prenotazioni, disdetta, punti, premi, eventi, isolamento tra centri
+npm run test:flows   # 51 controlli su prenotazione, doppie prenotazioni, disdetta, punti, premi, eventi, isolamento tra centri
 npm run typecheck
 ```
 

@@ -101,6 +101,23 @@ async function main() {
     const forced = await bookAppointment({ center, actor: actor(admin), clientId: bea.id, treatmentId: tr.id, employeeId: emp1.id, start: at(1200), force: true });
     check("admin può inserire un appuntamento fuori orario", forced.status === "confirmed");
 
+    console.log("\nAppuntamento inserito dal dipendente");
+    const day2 = addDays(day, 2);
+    const at2 = (m: number) => zoned(day2, m, tz);
+    const byEmp = await bookAppointment({ center, actor: actor(emp2), clientId: bea.id, treatmentId: tr.id, employeeId: emp2.id, start: at2(660) });
+    check("il dipendente inserisce un appuntamento in agenda", byEmp.status === "confirmed" && byEmp.employeeId === emp2.id);
+    const avEmp = await computeAvailability({ center, treatmentId: tr.id, employeeId: emp2.id, fromDate: day2, days: 1 });
+    const busyStarts = avEmp[day2].map((s) => s.start);
+    check("quell'orario non è più disponibile per il cliente con quel dipendente", !busyStarts.includes(at2(660).toISOString()) && !busyStarts.includes(at2(630).toISOString()) && !busyStarts.includes(at2(720).toISOString()));
+    check("gli altri orari del dipendente restano disponibili", busyStarts.includes(at2(540).toISOString()) && busyStarts.includes(at2(900).toISOString()));
+    await rejects("il cliente non può prenotare con quel dipendente a quell'ora", () => bookAppointment({ center, actor: actor(anna), clientId: anna.id, treatmentId: tr.id, employeeId: emp2.id, start: at2(660) }));
+    await rejects("…neanche in parziale sovrapposizione", () => bookAppointment({ center, actor: actor(anna), clientId: anna.id, treatmentId: tr.id, employeeId: emp2.id, start: at2(690) }));
+    const anyEmp = await computeAvailability({ center, treatmentId: tr.id, employeeId: null, fromDate: day2, days: 1 });
+    const slot11 = anyEmp[day2].find((s) => s.start === at2(660).toISOString());
+    check('"nessuna preferenza" a quell\'ora propone solo gli altri dipendenti', !!slot11 && !slot11.employeeIds.includes(emp2.id));
+    const forcedEmp = bookAppointment({ center, actor: actor(emp2), clientId: anna.id, treatmentId: tr.id, employeeId: emp2.id, start: at2(680), force: true });
+    await rejects("anche l'inserimento manuale del dipendente non può sovrapporsi", () => forcedEmp);
+
     console.log("\nIsolamento tra centri");
     const cliB = await B.mk("client", "clib");
     await rejects("cliente di un altro centro non può prenotare", () => bookAppointment({ center: B.center, actor: { id: cliB.id, role: "client", centerId: B.center.id }, clientId: cliB.id, treatmentId: tr.id, employeeId: emp1.id, start: at(960) }));

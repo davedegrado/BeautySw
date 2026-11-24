@@ -6,6 +6,7 @@ import { useEffect, useMemo, useState, type CSSProperties, type ReactNode } from
 import { Check, Clock, Loader2, Mail, Phone, Plus, StickyNote, User } from "lucide-react";
 import { adminCancelAppointmentAction, adminDeleteAppointmentAction, adminSaveAppointmentAction, completeAppointmentAction, noShowAction } from "@/actions/admin";
 import { availabilityAction } from "@/actions/client";
+import { staffCreateAppointmentAction } from "@/actions/staff";
 import type { Slot } from "@/lib/availability";
 import type { ApptVM } from "@/lib/calendar";
 import { eur } from "@/lib/format";
@@ -44,11 +45,13 @@ export function SelectNav({ value, options, param, base, className = "input !w-a
   );
 }
 
-/* ------------------------------------------------------------------ Form appuntamento (amministratore) */
+/* ------------------------------------------------------------------ Form appuntamento (amministratore e dipendente) */
 
-export function AppointmentForm({ data, appt, defaults, onDone }: { data: FormData_; appt?: ApptVM; defaults?: { date?: string; employeeId?: string; clientId?: string }; onDone: () => void }) {
+export function AppointmentForm({ data, appt, defaults, onDone, mode = "admin" }: { data: FormData_; appt?: ApptVM; defaults?: { date?: string; employeeId?: string; clientId?: string }; onDone: () => void; mode?: "admin" | "staff" }) {
+  const isStaff = mode === "staff";
+  const [clientId, setClientId] = useState(defaults?.clientId ?? "");
   const [treatmentId, setTreatmentId] = useState(appt?.treatmentId ?? "");
-  const [employeeId, setEmployeeId] = useState(appt?.employeeId ?? defaults?.employeeId ?? "");
+  const [employeeId, setEmployeeId] = useState(appt?.employeeId ?? defaults?.employeeId ?? (isStaff ? (data.employees[0]?.id ?? "") : ""));
   const [date, setDate] = useState(appt?.date ?? defaults?.date ?? data.today);
   const [manual, setManual] = useState(false);
   const [slots, setSlots] = useState<Slot[] | null>(null);
@@ -79,26 +82,36 @@ export function AppointmentForm({ data, appt, defaults, onDone }: { data: FormDa
   }, [treatmentId, employeeId, date, manual, appt?.id]);
 
   return (
-    <ActionForm action={adminSaveAppointmentAction} submitLabel={appt ? "Salva modifiche" : "Crea appuntamento"} onSuccess={onDone}>
+    <ActionForm action={isStaff ? staffCreateAppointmentAction : adminSaveAppointmentAction} submitLabel={appt ? "Salva modifiche" : "Crea appuntamento"} onSuccess={onDone}>
       {appt && <input type="hidden" name="id" value={appt.id} />}
       {appt ? (
         <p className="rounded-lg bg-cream/70 px-4 py-2.5 text-sm">
           Cliente: <strong className="font-medium">{appt.clientName}</strong>
         </p>
       ) : (
-        <label className="block">
-          <span className="label">Cliente</span>
-          <select name="clientId" required className="input" defaultValue={defaults?.clientId ?? ""}>
-            <option value="" disabled>
-              Seleziona cliente…
-            </option>
-            {data.clients.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name}
+        <div>
+          <label className="block">
+            <span className="label">Cliente</span>
+            <select name="clientId" required className="input" value={clientId} onChange={(e) => setClientId(e.target.value)}>
+              <option value="" disabled>
+                Seleziona cliente…
               </option>
-            ))}
-          </select>
-        </label>
+              <option value="__new">+ Nuovo cliente (non registrato)</option>
+              {data.clients.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.name}
+                </option>
+              ))}
+            </select>
+          </label>
+          {clientId === "__new" && (
+            <div className="mt-2 grid grid-cols-2 gap-2 rounded-lg border border-gold/40 bg-gold/5 p-3 sm:grid-cols-3">
+              <input name="newFirstName" required placeholder="Nome" className="input" aria-label="Nome del nuovo cliente" />
+              <input name="newLastName" placeholder="Cognome" className="input" aria-label="Cognome del nuovo cliente" />
+              <input name="newPhone" type="tel" placeholder="Telefono" className="input col-span-2 sm:col-span-1" aria-label="Telefono del nuovo cliente" />
+            </div>
+          )}
+        </div>
       )}
       <label className="block">
         <span className="label">Trattamento</span>
@@ -113,7 +126,10 @@ export function AppointmentForm({ data, appt, defaults, onDone }: { data: FormDa
           ))}
         </select>
       </label>
-      <div className="grid grid-cols-2 gap-3">
+      <div className={isStaff ? "" : "grid grid-cols-2 gap-3"}>
+        {isStaff ? (
+          <input type="hidden" name="employeeId" value={employeeId} />
+        ) : (
         <label className="block">
           <span className="label">Operatore</span>
           <select name="employeeId" required className="input" value={employeeId} onChange={(e) => setEmployeeId(e.target.value)}>
@@ -127,6 +143,7 @@ export function AppointmentForm({ data, appt, defaults, onDone }: { data: FormDa
             ))}
           </select>
         </label>
+        )}
         <label className="block">
           <span className="label">Data</span>
           <input type="date" name="date" required className="input" value={date} onChange={(e) => setDate(e.target.value)} />
@@ -138,13 +155,13 @@ export function AppointmentForm({ data, appt, defaults, onDone }: { data: FormDa
         {manual ? (
           <input type="time" name="time" required className="input" defaultValue={appt ? appt.time.slice(0, 5) : "09:00"} step={300} />
         ) : !treatmentId || !employeeId ? (
-          <p className="text-sm text-smoke">Seleziona trattamento e operatore per vedere gli orari disponibili.</p>
+          <p className="text-sm text-smoke">{isStaff ? "Seleziona il trattamento per vedere i tuoi orari liberi." : "Seleziona trattamento e operatore per vedere gli orari disponibili."}</p>
         ) : slots === null ? (
           <p className="flex items-center gap-2 text-sm text-smoke">
             <Loader2 className="h-4 w-4 animate-spin text-gold" /> Ricerca orari liberi…
           </p>
         ) : slots.length === 0 ? (
-          <p className="text-sm text-danger">Nessun orario libero in questa data per l&apos;operatore scelto.</p>
+          <p className="text-sm text-danger">{isStaff ? "Non hai orari liberi in questa data per il trattamento scelto." : <>Nessun orario libero in questa data per l&apos;operatore scelto.</>}</p>
         ) : (
           <>
             <input type="hidden" name="start" value={start} />
@@ -163,11 +180,13 @@ export function AppointmentForm({ data, appt, defaults, onDone }: { data: FormDa
         </label>
       </div>
 
-      <div className="grid grid-cols-[8rem_1fr] gap-3">
+      <div className={isStaff ? "" : "grid grid-cols-[8rem_1fr] gap-3"}>
+        {!isStaff && (
         <label className="block">
           <span className="label">Prezzo €</span>
           <input name="price" inputMode="decimal" className="input" key={treatmentId} defaultValue={appt && appt.treatmentId === treatmentId ? (appt.priceCents / 100).toString().replace(".", ",") : ""} placeholder={treatment ? (treatment.priceCents / 100).toString() : "listino"} />
         </label>
+        )}
         <label className="block">
           <span className="label">Note</span>
           <input name="notes" className="input" defaultValue={appt?.notes ?? ""} maxLength={1000} />
@@ -177,7 +196,7 @@ export function AppointmentForm({ data, appt, defaults, onDone }: { data: FormDa
   );
 }
 
-export function NewAppointmentButton({ data, defaults, label = "Nuovo appuntamento", className = "btn btn-gold" }: { data: FormData_; defaults?: { date?: string; employeeId?: string; clientId?: string }; label?: ReactNode; className?: string }) {
+export function NewAppointmentButton({ data, defaults, label = "Nuovo appuntamento", className = "btn btn-gold", mode = "admin" }: { data: FormData_; defaults?: { date?: string; employeeId?: string; clientId?: string }; label?: ReactNode; className?: string; mode?: "admin" | "staff" }) {
   const [open, setOpen] = useState(false);
   return (
     <>
@@ -185,7 +204,7 @@ export function NewAppointmentButton({ data, defaults, label = "Nuovo appuntamen
         <Plus className="h-3.5 w-3.5" /> {label}
       </button>
       <Modal open={open} onClose={() => setOpen(false)} title="Nuovo appuntamento">
-        {open && <AppointmentForm data={data} defaults={defaults} onDone={() => setOpen(false)} />}
+        {open && <AppointmentForm data={data} defaults={defaults} mode={mode} onDone={() => setOpen(false)} />}
       </Modal>
     </>
   );

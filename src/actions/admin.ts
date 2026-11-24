@@ -4,6 +4,7 @@ import { and, eq, gte, inArray, isNotNull, lt, sql } from "drizzle-orm";
 import { db, t } from "@/db";
 import { DEFAULT_PERMISSIONS, PROMO_CATEGORIES, type TreatmentStatus } from "@/db/schema";
 import { form, run } from "@/lib/action";
+import { clientFromForm, startFromForm } from "@/lib/booking-form";
 import { bookAppointment, cancelAppointment, completeAppointment, markNoShow, updateAppointment } from "@/lib/booking";
 import { fmt, fmtDay, localDate, timeToMinutes, zonedFromInput } from "@/lib/dates";
 import { AppError, type ActionResult } from "@/lib/errors";
@@ -45,10 +46,8 @@ export async function adminSaveAppointmentAction(_: R, fd: FormData) {
     const s = await admin();
     const f = form(fd);
     const id = f.optId("id");
-    const tz = s.center.timezone;
     // L'orario arriva o da uno slot libero (ISO) o da un inserimento manuale "fuori orario".
-    const manual = f.bool("manual");
-    const start = manual ? zonedFromInput(`${f.date("date", "Data")}T${f.req("time", "Orario")}`, tz) : new Date(f.req("start", "Orario"));
+    const { start, manual } = startFromForm(s, f);
     const price = f.cents("price", "Prezzo", true);
     if (id) {
       await updateAppointment(s.center, actorOf(s), {
@@ -64,7 +63,7 @@ export async function adminSaveAppointmentAction(_: R, fd: FormData) {
     await bookAppointment({
       center: s.center,
       actor: actorOf(s),
-      clientId: f.id("clientId", "Cliente"),
+      clientId: await clientFromForm(s, f),
       treatmentId: f.id("treatmentId", "Trattamento"),
       employeeId: f.id("employeeId", "Operatore"),
       start,

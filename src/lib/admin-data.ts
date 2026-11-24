@@ -5,6 +5,16 @@ import type { FormData_ } from "@/components/calendar-client";
 import { localDate } from "./dates";
 import { fullName } from "./format";
 
+/** Dati del form "Nuovo appuntamento" del dipendente: solo i propri trattamenti e sé stesso come operatore. */
+export async function staffAppointmentFormData(center: Center, employeeId: string): Promise<FormData_> {
+  const all = await appointmentFormData(center);
+  return {
+    ...all,
+    treatments: all.treatments.filter((x) => x.employeeIds.includes(employeeId)),
+    employees: all.employees.filter((e) => e.id === employeeId),
+  };
+}
+
 /** Dati necessari al form di creazione/modifica appuntamento dell'amministratore. */
 export async function appointmentFormData(center: Center): Promise<FormData_ & { employeesFull: { id: string; name: string; color: string }[] }> {
   const [clients, treatments, links, employees] = await Promise.all([

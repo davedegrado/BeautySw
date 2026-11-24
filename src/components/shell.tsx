@@ -40,6 +40,8 @@ const NAV: Record<string, Item[]> = {
     { href: "/staff/appuntamenti", label: "I miei appuntamenti", icon: ClipboardList, primary: true },
     { href: "/staff/trattamenti", label: "I miei trattamenti", icon: Gift },
     { href: "/staff/trattamenti/nuovo", label: "Nuovo trattamento", icon: PlusCircle, primary: true, accent: true },
+    { href: "/staff/promozioni", label: "Promozioni", icon: Tag },
+    { href: "/staff/eventi", label: "Eventi", icon: PartyPopper },
     { href: "/staff/profilo", label: "Il mio profilo", icon: User },
   ],
 };

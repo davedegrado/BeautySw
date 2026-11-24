@@ -51,7 +51,9 @@ export function activePromotions(centerId: string, tz: string) {
     .orderBy(asc(t.promotions.endsOn));
 }
 
-const seatsTaken = sql<number>`(select coalesce(sum(r.seats), 0)::int from event_registrations r where r.event_id = ${t.events.id})`;
+// Colonna esterna qualificata a mano: Drizzle la scriverebbe come "id", che nella sottoquery
+// verrebbe risolto sulla tabella interna.
+const seatsTaken = sql<number>`(select coalesce(sum(r.seats), 0)::int from event_registrations r where r.event_id = "events"."id")`;
 
 export function eventsWithSeats(centerId: string, opts: { upcomingOnly?: boolean; publishedOnly?: boolean } = {}) {
   return db
